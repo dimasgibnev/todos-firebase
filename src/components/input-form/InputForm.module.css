@@ -1,0 +1,17 @@
+.form {
+	display: flex;
+	position: absolute;
+	z-index: 1000;
+	width: 600px;
+	height: 200px;
+	background-color: rgba(244, 205, 205, 0.377);
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+}
+.form input {
+	height: 50px;
+	width: 80%;
+	margin-right: 10px;
+	padding: 5px;
+}
