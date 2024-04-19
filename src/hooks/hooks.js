@@ -1,33 +1,33 @@
 import { useEffect, useState } from 'react';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, push, set, remove } from 'firebase/database';
 import { db } from '../firebase';
 
 export const useRequestGetTodoList = () => {
-	const [isLoading, setIsLoading] = useState(false);
-	const [todoList, setTodoList] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [todoList, setTodoList] = useState({});
 
 	useEffect(() => {
-        const productsDbRef = ref(db, 'todos');
+		const todosDbRef = ref(db, 'todos');
 
-		    return onValue(productsDbRef, (snapshot) => {
-			      const loadedProducts = snapshot.val();
+		return onValue(todosDbRef, (snapshot) => {
+			const loadedTodos = snapshot.val();
 
-			      setTodoList(loadedProducts || {});
-			      setIsLoading(false);
-		    });
-    }, []);
+			setTodoList(loadedTodos || {});
+			setIsLoading(false);
+		});
+	}, []);
 
 	const handleCheck = (id) => {
-		const updatedList = todoList.map((todo) => {
-			if (todo.id === id) {
+		const updatedList = Object.entries(todoList).map(([todoId, todo]) => {
+			if (todoId === id) {
 				return { ...todo, completed: !todo.completed };
 			}
 			return todo;
 		});
-		setTodoList(updatedList);
+		setTodoList({ ...updatedList });
 	};
 
-	return { todoList, isLoading, handleCheck};
+	return { todoList, isLoading, handleCheck };
 };
 
 export const useRequestAddTodo = (todoText, setRefreshTodos, setTodoText) => {
@@ -35,43 +35,33 @@ export const useRequestAddTodo = (todoText, setRefreshTodos, setTodoText) => {
 
 	const requestAddTodo = () => {
 		setIsCreating(true);
+		const todosDbRef = ref(db, 'todos');
 
-		fetch('http://localhost:3005/todos', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json;charset=utf-8' },
-			body: JSON.stringify({
-				title: todoText,
-				completed: false,
-			}),
+		push(todosDbRef, {
+			title: todoText,
+			completed: false,
 		})
-			.then((rawResponse) => rawResponse.json())
-			.then((response) => {
-				setRefreshTodos((prev) => !prev);
-			})
+			.then((response) => {})
 			.catch((error) => console.log('Ошибка', error))
 			.finally(() => setIsCreating(false));
 	};
 
 	const handleClick = () => {
 		setIsCreating(!isCreating);
-		setTodoText('')
 	};
 
 	return { requestAddTodo, isCreating, handleClick };
 };
 
-export const useRequestDeleteTodo = (setRefreshTodos) => {
+export const useRequestDeleteTodo = () => {
 	const [isDeleting, setIsDeleting] = useState(false);
 
 	const requestDeleteTodo = (id) => {
+		const todoDbRef = ref(db, `todos/${id}`);
+
 		setIsDeleting(true);
-		fetch(`http://localhost:3005/todos/${id}`, {
-			method: 'DELETE',
-		})
-			.then((rawResponse) => rawResponse.json())
-			.then((response) => {
-				setRefreshTodos((prev) => !prev);
-			})
+		remove(todoDbRef)
+			.then((response) => {})
 			.catch((error) => console.log('Ошибка', error))
 			.finally(() => setIsDeleting(false));
 	};
@@ -79,24 +69,16 @@ export const useRequestDeleteTodo = (setRefreshTodos) => {
 	return { requestDeleteTodo, isDeleting };
 };
 
-
-export const useRequestUpdateTodo = (setRefreshTodos, todoText) => {
+export const useRequestUpdateTodo = (todoText) => {
 	const requestUpdateTodo = (id) => {
-		fetch(`http://localhost:3005/todos/${id}`, {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json;charset=utf-8' },
-			body: JSON.stringify({
-				title: todoText,
-				completed: false,
-			}),
+		const todoDbRef = ref(db, `todos/${id}`);
+		set(todoDbRef, {
+			title: todoText,
+			completed: false,
 		})
-			.then((rawResponse) => rawResponse.json())
-			.then((response) => {
-				setRefreshTodos((prev) => !prev);
-			})
+			.then((response) => {})
 			.catch((error) => console.log('Ошибка', error));
 	};
 
 	return { requestUpdateTodo };
 };
-

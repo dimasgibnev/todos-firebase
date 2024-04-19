@@ -31,7 +31,7 @@ export const TodoList = ({
 					todoText={todoText}
 				/>
 			)}
-			{todoList.map(({ id, title, completed }, index) => (
+			{Object.entries(todoList).map(([id, {title, completed}], index) => (
 				<div className={styles['todo-container']} key={id}>
 					<TodoItem
 						id={id}
@@ -50,6 +50,7 @@ export const TodoList = ({
 					<Button
 						id={id}
 						onClick={() => {
+							setTodoText(title)
 							setIsUpdating(true);
 							setEditingId(id);
 						}}

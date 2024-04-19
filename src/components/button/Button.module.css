@@ -21,3 +21,9 @@
 .add-todo {
 	background-color: #ffffff;
 }
+.todo-sort-btn {
+	width: 145px;
+	position: absolute;
+	left: 10px;
+	top: 75px
+}
